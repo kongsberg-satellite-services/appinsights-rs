@@ -35,7 +35,7 @@ uuid = { version = "0.8", features = ["v4"], default-features = false }
 reqwest = { version = "0.11", features = ["json"], default-features = false }
 log = "0.4"
 sm = "0.9"
-tokio = { version = "1", features = ["rt"], default-features = false }
+tokio = { version = "1", features = ["rt", "macros"], default-features = false }
 paste = "1.0"
 hostname = "0.3"
 futures-util = { version = "0.3", default-features = false }
