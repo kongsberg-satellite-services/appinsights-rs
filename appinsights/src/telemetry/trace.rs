@@ -70,6 +70,16 @@ impl TraceTelemetry {
     pub fn measurements_mut(&mut self) -> &mut Measurements {
         &mut self.measurements
     }
+
+    /// Sets a new message of this trace telemetry.
+    pub fn set_message(&mut self, message: impl Into<String>) {
+        self.message = message.into();
+    }
+
+    /// Sets a new severity level of this trace telemetry.
+    pub fn set_severity(&mut self, severity: SeverityLevel) {
+        self.severity = severity;
+    }
 }
 
 impl Telemetry for TraceTelemetry {
