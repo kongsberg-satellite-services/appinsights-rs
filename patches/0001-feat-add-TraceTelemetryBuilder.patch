@@ -1,0 +1,91 @@
+From fbbf96563c5149a1752f00585a131c1cec6bcfbf Mon Sep 17 00:00:00 2001
+From: Vegard Sandengen <vegardgs@ksat.no>
+Date: Tue, 14 Sep 2021 07:24:23 +0000
+Subject: [PATCH] feat: add TraceTelemetryBuilder
+
+---
+ .../appinsights/src/telemetry/trace.rs        | 61 +++++++++++++++++++
+ 1 file changed, 61 insertions(+)
+
+diff --git a/appinsights/src/telemetry/trace.rs b/appinsights/src/telemetry/trace.rs
+index 03ec7e5..fa0dc53 100644
+--- a/appinsights/src/telemetry/trace.rs
++++ b/appinsights/src/telemetry/trace.rs
+@@ -48,6 +48,62 @@ pub struct TraceTelemetry {
+     measurements: Measurements,
+ }
+ 
++// This struct is a Option'fied version of TraceTelemetry
++#[derive(Debug, Default)]
++pub struct TraceTelemetryBuilder {
++    message: Option<String>,
++    severity: Option<SeverityLevel>,
++    timestamp: Option<DateTime<Utc>>,
++    properties: Option<Properties>,
++    tags: Option<ContextTags>,
++    measurements: Option<Measurements>,
++}
++
++impl TraceTelemetryBuilder {
++    pub fn with_message(mut self, message: impl Into<String>) -> Self {
++        self.message = Some(message.into());
++        self
++    }
++
++    pub fn with_severity(mut self, severity: SeverityLevel) -> Self {
++        self.severity = Some(severity);
++        self
++    }
++
++    pub fn with_timestamp(mut self, timestamp: DateTime<Utc>) -> Self {
++        self.timestamp = Some(timestamp);
++        self
++    }
++
++    pub fn with_properties(mut self, properties: Properties) -> Self {
++        self.properties = Some(properties);
++        self
++    }
++
++    pub fn with_tags(mut self, tags: ContextTags) -> Self {
++        self.tags = Some(tags);
++        self
++    }
++
++    pub fn with_measurements(mut self, measurements: Measurements) -> Self {
++        self.measurements = Some(measurements);
++        self
++    }
++
++    /// If no message is provided, an empty string is passed.
++    /// If no severity is provided, SeverityLevel::Verbose is used.
++    pub fn build(self) -> TraceTelemetry {
++        TraceTelemetry {
++            message: self.message.unwrap_or_else(String::new),
++            severity: self.severity.unwrap_or(SeverityLevel::Verbose),
++            timestamp: self.timestamp.unwrap_or_else(time::now),
++            properties: self.properties.unwrap_or_default(),
++            tags: self.tags.unwrap_or_default(),
++            measurements: self.measurements.unwrap_or_default(),
++        }
++    }
++}
++
+ impl TraceTelemetry {
+     /// Creates an event telemetry item with specified name.
+     pub fn new(message: impl Into<String>, severity: SeverityLevel) -> Self {
+@@ -61,6 +117,11 @@ impl TraceTelemetry {
+         }
+     }
+ 
++    /// Create a new [TraceTelemetryBuilder], used to construct [TraceTelemetry].
++    pub fn builder() -> TraceTelemetryBuilder {
++        TraceTelemetryBuilder::default()
++    }
++
+     /// Returns custom measurements to submit with the telemetry item.
+     pub fn measurements(&self) -> &Measurements {
+         &self.measurements
+-- 
+2.25.1
+

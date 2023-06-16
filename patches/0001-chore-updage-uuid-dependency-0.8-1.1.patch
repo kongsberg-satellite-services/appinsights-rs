@@ -1,0 +1,84 @@
+From 25768a955e0a42ebc8b76bf40be20e9ad684dfe8 Mon Sep 17 00:00:00 2001
+From: Vegard Sandengen <vegardgs@ksat.no>
+Date: Mon, 1 Aug 2022 08:00:38 +0000
+Subject: [PATCH] chore: updage uuid dependency 0.8 -> 1.1
+
+---
+ Cargo.lock                                | 4 ++--
+ appinsights/Cargo.toml                    | 2 +-
+ appinsights/src/telemetry/availability.rs | 2 +-
+ appinsights/src/telemetry/page_view.rs    | 2 +-
+ appinsights/src/telemetry/request.rs      | 2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/Cargo.lock b/Cargo.lock
+index 675e2cf..44ab437 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -1481,9 +1481,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "uuid"
+-version = "0.8.2"
++version = "1.1.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
++checksum = "dd6469f4314d5f1ffec476e05f17cc9a78bc7a27a6a857842170bdf8d6f98d2f"
+ dependencies = [
+  "getrandom 0.2.1",
+ ]
+diff --git a/appinsights/Cargo.toml b/appinsights/Cargo.toml
+index d684bdc..eae8a9a 100644
+--- a/appinsights/Cargo.toml
++++ b/appinsights/Cargo.toml
+@@ -31,7 +31,7 @@ serde = { version = "1.0", features = ["derive"], default-features = false }
+ serde_json = "1.0"
+ chrono = "0.4"
+ http = "0.2"
+-uuid = { version = "0.8", features = ["v4"], default-features = false }
++uuid = { version = "1.1", features = ["v4"], default-features = false }
+ reqwest = { version = "0.11", features = ["json"], default-features = false }
+ log = "0.4"
+ sm = "0.9"
+diff --git a/appinsights/src/telemetry/availability.rs b/appinsights/src/telemetry/availability.rs
+index d01e68a..cefc4da 100644
+--- a/appinsights/src/telemetry/availability.rs
++++ b/appinsights/src/telemetry/availability.rs
+@@ -133,7 +133,7 @@ impl From<(TelemetryContext, AvailabilityTelemetry)> for Envelope {
+             data: Some(Base::Data(Data::AvailabilityData(AvailabilityData {
+                 id: telemetry
+                     .id
+-                    .map(|id| id.to_hyphenated().to_string())
++                    .map(|id| id.as_hyphenated().to_string())
+                     .unwrap_or_default(),
+                 name: telemetry.name,
+                 duration: telemetry.duration.to_string(),
+diff --git a/appinsights/src/telemetry/page_view.rs b/appinsights/src/telemetry/page_view.rs
+index 81a86a1..d627a59 100644
+--- a/appinsights/src/telemetry/page_view.rs
++++ b/appinsights/src/telemetry/page_view.rs
+@@ -128,7 +128,7 @@ impl From<(TelemetryContext, PageViewTelemetry)> for Envelope {
+                 referrer_uri: None,
+                 id: telemetry
+                     .id
+-                    .map(|id| id.to_hyphenated().to_string())
++                    .map(|id| id.as_hyphenated().to_string())
+                     .unwrap_or_default(),
+                 properties: Some(Properties::combine(context.properties, telemetry.properties).into()),
+                 measurements: Some(telemetry.measurements.into()),
+diff --git a/appinsights/src/telemetry/request.rs b/appinsights/src/telemetry/request.rs
+index 7e671a1..10d2ca4 100644
+--- a/appinsights/src/telemetry/request.rs
++++ b/appinsights/src/telemetry/request.rs
+@@ -195,7 +195,7 @@ impl From<(TelemetryContext, RequestTelemetry)> for Envelope {
+             i_key: Some(context.i_key),
+             tags: Some(ContextTags::combine(context.tags, telemetry.tags).into()),
+             data: Some(Base::Data(Data::RequestData(RequestData {
+-                id: telemetry.id.unwrap_or_else(|| uuid::new().to_hyphenated().to_string()),
++                id: telemetry.id.unwrap_or_else(|| uuid::new().as_hyphenated().to_string()),
+                 name: Some(telemetry.name),
+                 duration: telemetry.duration.to_string(),
+                 response_code: telemetry.response_code,
+-- 
+2.25.1
+

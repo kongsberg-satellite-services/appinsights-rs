@@ -1,0 +1,35 @@
+From e4c9ad3d205d597ed7815da154845ccfd6936682 Mon Sep 17 00:00:00 2001
+From: Vegard Sandengen <vegardgs@ksat.no>
+Date: Tue, 14 Sep 2021 06:54:13 +0000
+Subject: [PATCH] feat: add set_(message/severity) to TraceTelemetry
+
+In some cases, we are required to update the message/severity tag after
+the TraceTelemetry object has been constructed.
+---
+ appinsights/src/telemetry/trace.rs | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/appinsights/src/telemetry/trace.rs b/appinsights/src/telemetry/trace.rs
+index 3f5cef1..03ec7e5 100644
+--- a/appinsights/src/telemetry/trace.rs
++++ b/appinsights/src/telemetry/trace.rs
+@@ -70,6 +70,16 @@ impl TraceTelemetry {
+     pub fn measurements_mut(&mut self) -> &mut Measurements {
+         &mut self.measurements
+     }
++
++    /// Sets a new message of this trace telemetry.
++    pub fn set_message(&mut self, message: impl Into<String>) {
++        self.message = message.into();
++    }
++
++    /// Sets a new severity level of this trace telemetry.
++    pub fn set_severity(&mut self, severity: SeverityLevel) {
++        self.severity = severity;
++    }
+ }
+ 
+ impl Telemetry for TraceTelemetry {
+-- 
+2.25.1
+

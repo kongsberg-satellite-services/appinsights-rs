@@ -1,0 +1,30 @@
+From e553744065d685705618437838a1eee49e00d1b9 Mon Sep 17 00:00:00 2001
+From: Vegard Sandengen <vegardgs@ksat.no>
+Date: Tue, 14 Sep 2021 09:07:14 +0000
+Subject: [PATCH] feat: constrain TelemetryChannel with Send bound
+
+In order to appropriately wrap the TelementryClient in a Send + Sync
+environment, the trait object TelemetryChannel it holds, must constrain
+implementers of this trait to also be Send, in order to propagate the
+Send property to TelemetryClient. This allows it to be used in a
+threadpool environment.
+---
+ appinsights/src/channel/mod.rs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/appinsights/src/channel/mod.rs b/appinsights/src/channel/mod.rs
+index 40effc3..601d4e2 100644
+--- a/appinsights/src/channel/mod.rs
++++ b/appinsights/src/channel/mod.rs
+@@ -14,7 +14,7 @@ use crate::contracts::Envelope;
+ /// An implementation of [TelemetryChannel](trait.TelemetryChannel.html) is responsible for queueing
+ /// and periodically submitting telemetry events.
+ #[async_trait]
+-pub trait TelemetryChannel {
++pub trait TelemetryChannel: Send {
+     /// Queues a single telemetry item.
+     fn send(&self, envelop: Envelope);
+ 
+-- 
+2.25.1
+

@@ -1,0 +1,31 @@
+From 46dd6cd7e6bf972e6cdadbbafb82c0a97a5e091a Mon Sep 17 00:00:00 2001
+From: Vegard Sandengen <vegardgs@ksat.no>
+Date: Tue, 14 Sep 2021 07:21:47 +0000
+Subject: [PATCH] build: add "macro" feature to tokio dependency
+
+In `src/channel/state`, we use the `tokio::select!` macro,
+which is only available with the "macro" feature. The build has passed
+fine in-repo because the Cargo.lock contains a reference to it, and it
+is pulled in. If one attempts to use appinsights-rs as a dependency to
+a crate without the tokio included, with the feature, it is not
+appropriately built, and building appinsights-rs fails.
+---
+ appinsights/Cargo.toml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/appinsights/Cargo.toml b/appinsights/Cargo.toml
+index cb456dc..d684bdc 100644
+--- a/appinsights/Cargo.toml
++++ b/appinsights/Cargo.toml
+@@ -35,7 +35,7 @@ uuid = { version = "0.8", features = ["v4"], default-features = false }
+ reqwest = { version = "0.11", features = ["json"], default-features = false }
+ log = "0.4"
+ sm = "0.9"
+-tokio = { version = "1", features = ["rt"], default-features = false }
++tokio = { version = "1", features = ["rt", "macros"], default-features = false }
+ paste = "1.0"
+ hostname = "0.3"
+ futures-util = { version = "0.3", default-features = false }
+-- 
+2.25.1
+
