@@ -7,9 +7,9 @@ use serde::Serialize;
 #[derive(Debug, Default, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StackFrame {
-    level: i32,
-    method: String,
-    assembly: Option<String>,
-    file_name: Option<String>,
-    line: Option<i32>,
+    pub level: i32,
+    pub method: String,
+    pub assembly: Option<String>,
+    pub file_name: Option<String>,
+    pub line: Option<i32>,
 }

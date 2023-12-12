@@ -2,8 +2,8 @@ use chrono::{DateTime, SecondsFormat, Utc};
 
 use crate::{
     context::TelemetryContext,
-    contracts::{SeverityLevel as ContractsSeverityLevel, *},
-    telemetry::{ContextTags, Measurements, Properties, Telemetry},
+    contracts::*,
+    telemetry::{ContextTags, Measurements, Properties, SeverityLevel, Telemetry},
     time,
 };
 
@@ -185,37 +185,6 @@ impl From<(TelemetryContext, TraceTelemetry)> for Envelope {
                 ..MessageData::default()
             }))),
             ..Envelope::default()
-        }
-    }
-}
-
-/// Defines the level of severity for the event.
-#[derive(Debug)]
-pub enum SeverityLevel {
-    /// Verbose severity level.
-    Verbose,
-
-    /// Information severity level.
-    Information,
-
-    /// Warning severity level.
-    Warning,
-
-    /// Error severity level.
-    Error,
-
-    /// Critical severity level.
-    Critical,
-}
-
-impl From<SeverityLevel> for ContractsSeverityLevel {
-    fn from(severity: SeverityLevel) -> Self {
-        match severity {
-            SeverityLevel::Verbose => ContractsSeverityLevel::Verbose,
-            SeverityLevel::Information => ContractsSeverityLevel::Information,
-            SeverityLevel::Warning => ContractsSeverityLevel::Warning,
-            SeverityLevel::Error => ContractsSeverityLevel::Error,
-            SeverityLevel::Critical => ContractsSeverityLevel::Critical,
         }
     }
 }

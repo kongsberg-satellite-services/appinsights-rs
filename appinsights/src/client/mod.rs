@@ -7,8 +7,8 @@ use crate::{
     context::TelemetryContext,
     contracts::Envelope,
     telemetry::{
-        AvailabilityTelemetry, EventTelemetry, MetricTelemetry, RemoteDependencyTelemetry, RequestTelemetry,
-        SeverityLevel, Telemetry, TraceTelemetry,
+        AvailabilityTelemetry, EventTelemetry, ExceptionTelemetry, MetricTelemetry, RemoteDependencyTelemetry,
+        RequestTelemetry, SeverityLevel, Telemetry, TraceTelemetry,
     },
     TelemetryConfig,
 };
@@ -207,6 +207,37 @@ impl TelemetryClient {
     pub fn track_availability(&self, name: impl Into<String>, duration: Duration, success: bool) {
         let event = AvailabilityTelemetry::new(name, duration, success);
         self.track(event)
+    }
+
+    /// Logs an exception with the specified message, exception type name,
+    /// severity level, and problem ID.
+    /// # Examples
+    ///
+    /// ```rust, no_run
+    /// # use appinsights::TelemetryClient;
+    /// # let client = TelemetryClient::new("<instrumentation key>".to_string());
+    /// use std::time::Duration;
+    ///
+    /// client.track_exception(
+    ///     "This is a message",
+    ///     "Panic",
+    ///     Some(std::backtrace::Backtrace::force_capture().to_string())
+    ///     "Panic@some_function"
+    /// );
+    /// ```
+    pub fn track_exception(
+        &self,
+        message: impl Into<String>,
+        exception_type_name: impl Into<String>,
+        stack_trace: Option<impl Into<String>>,
+        problem_id: Option<impl Into<String>>,
+    ) {
+        let exception = ExceptionTelemetry::new(Some(SeverityLevel::Error), problem_id).with_message(
+            message,
+            exception_type_name,
+            stack_trace,
+        );
+        self.track(exception)
     }
 
     /// Submits a specific telemetry event.

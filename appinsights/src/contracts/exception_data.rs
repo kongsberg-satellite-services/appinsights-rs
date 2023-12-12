@@ -8,7 +8,7 @@ use serde::Serialize;
 #[serde(rename_all = "camelCase")]
 pub struct ExceptionData {
     pub ver: i32,
-    pub exceptions: ExceptionDetails,
+    pub exceptions: Vec<ExceptionDetails>,
     pub severity_level: Option<SeverityLevel>,
     pub problem_id: Option<String>,
     pub properties: Option<std::collections::BTreeMap<String, String>>,
@@ -19,7 +19,7 @@ impl Default for ExceptionData {
     fn default() -> Self {
         Self {
             ver: 2,
-            exceptions: ExceptionDetails::default(),
+            exceptions: Vec::default(),
             severity_level: Option::default(),
             problem_id: Option::default(),
             properties: Option::default(),
