@@ -9,10 +9,7 @@ documentation = "https://docs.rs/appinsights"
 repository = "https://github.com/dmolokanov/appinsights-rs"
 readme = "../README.md"
 keywords = ["logging", "tracing", "metrics", "APM"]
-categories = [
-    "development-tools::debugging",
-    "development-tools::profiling"
-]
+categories = ["development-tools::debugging", "development-tools::profiling"]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -49,9 +46,16 @@ env_logger = "0.9"
 lazy_static = "1.4"
 matches = "0.1"
 hyper = { version = "0.14", features = ["server"], default-features = false }
-tokio = { version = "1.21", features = ["macros", "rt-multi-thread"], default-features = false }
+tokio = { version = "1.21", features = [
+    "macros",
+    "rt-multi-thread",
+], default-features = false }
 parking_lot = "0.12"
 
 [[example]]
 name = "blocking"
+required-features = ["blocking"]
+
+[[test]]
+name = "telemetry_blocking"
 required-features = ["blocking"]

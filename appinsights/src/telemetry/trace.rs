@@ -94,7 +94,7 @@ impl TraceTelemetryBuilder {
     /// If no severity is provided, SeverityLevel::Verbose is used.
     pub fn build(self) -> TraceTelemetry {
         TraceTelemetry {
-            message: self.message.unwrap_or_else(String::new),
+            message: self.message.unwrap_or_default(),
             severity: self.severity.unwrap_or(SeverityLevel::Verbose),
             timestamp: self.timestamp.unwrap_or_else(time::now),
             properties: self.properties.unwrap_or_default(),

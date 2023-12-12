@@ -107,29 +107,27 @@ impl Worker {
         let timeout = timeout::sleep(self.interval);
         items.clear();
 
-        loop {
-            tokio::select! {
-                command = self.command_receiver.next() => {
-                    match command {
-                        Some(command) => {
-                            trace!("Command received: {}", command);
-                            match command {
-                                Command::Flush => return m.transition(FlushRequested).as_enum(),
-                                Command::Terminate => return m.transition(TerminateRequested).as_enum(),
-                                Command::Close => return m.transition(CloseRequested).as_enum(),
-                            }
-                        },
-                        None => {
-                            error!("commands channel closed");
-                            return m.transition(TerminateRequested).as_enum()
-                        },
-                    }
-                },
-                _ = timeout => {
-                    debug!("Timeout expired");
-                    return m.transition(TimeoutExpired).as_enum()
-                },
-            }
+        tokio::select! {
+            command = self.command_receiver.next() => {
+                match command {
+                    Some(command) => {
+                        trace!("Command received: {}", command);
+                        match command {
+                            Command::Flush => m.transition(FlushRequested).as_enum(),
+                            Command::Terminate => m.transition(TerminateRequested).as_enum(),
+                            Command::Close => m.transition(CloseRequested).as_enum(),
+                        }
+                    },
+                    None => {
+                        error!("commands channel closed");
+                        m.transition(TerminateRequested).as_enum()
+                    },
+                }
+            },
+            _ = timeout => {
+                debug!("Timeout expired");
+                m.transition(TimeoutExpired).as_enum()
+            },
         }
     }
 
