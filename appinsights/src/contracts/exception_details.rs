@@ -7,13 +7,13 @@ use serde::Serialize;
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExceptionDetails {
-    id: Option<i32>,
-    outer_id: Option<i32>,
-    type_name: String,
-    message: String,
-    has_full_stack: Option<bool>,
-    stack: Option<String>,
-    parsed_stack: Option<StackFrame>,
+    pub id: Option<i32>,
+    pub outer_id: Option<i32>,
+    pub type_name: String,
+    pub message: String,
+    pub has_full_stack: Option<bool>,
+    pub stack: Option<String>,
+    pub parsed_stack: Vec<StackFrame>,
 }
 
 impl Default for ExceptionDetails {
@@ -25,7 +25,7 @@ impl Default for ExceptionDetails {
             message: String::default(),
             has_full_stack: Some(true),
             stack: Option::default(),
-            parsed_stack: Option::default(),
+            parsed_stack: Vec::default(),
         }
     }
 }

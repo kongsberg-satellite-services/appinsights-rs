@@ -8,22 +8,25 @@ mod page_view;
 mod properties;
 mod remote_dependency;
 mod request;
+mod severity_level;
 mod tags;
 mod trace;
 
 pub use availability::AvailabilityTelemetry;
 pub use event::EventTelemetry;
+pub use exception::ExceptionTelemetry;
 pub use measurements::Measurements;
 pub use metric::{AggregateMetricTelemetry, MetricTelemetry, Stats};
 pub use page_view::PageViewTelemetry;
 pub use properties::Properties;
 pub use remote_dependency::RemoteDependencyTelemetry;
 pub use request::RequestTelemetry;
+pub use severity_level::SeverityLevel;
 pub use tags::{
     ApplicationTags, CloudTags, ContextTags, DeviceTags, InternalTags, LocationTags, OperationTags, SessionTags,
     UserTags,
 };
-pub use trace::{SeverityLevel, TraceTelemetry};
+pub use trace::TraceTelemetry;
 
 use chrono::{DateTime, Utc};
 
