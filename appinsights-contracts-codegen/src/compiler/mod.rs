@@ -14,7 +14,7 @@ use crate::parser::Parser;
 use crate::Result;
 
 pub fn compile_all(input_dir: PathBuf, output_dir: PathBuf) -> Result<()> {
-    let mut modules: Vec<_> = fs::read_dir(&input_dir)?
+    let mut modules: Vec<_> = fs::read_dir(input_dir)?
         .filter_map(|entry| entry.ok().map(|entry| entry.path()))
         .map(|path| Module::try_from((path, output_dir.clone())).expect("unable to read module path"))
         .collect();
@@ -39,13 +39,13 @@ fn compile_files<'a>(modules: impl Iterator<Item = &'a Module>) -> Result<()> {
 }
 
 fn compile(module: &Module) -> Result<()> {
-    let parser = Parser::default();
+    let parser = Parser;
     let schema = parser.parse(module.source_path())?;
 
     let mut generator = SchemaGenerator::new();
     generator.visit_schema(&schema);
 
-    fs::write(&module.path(), generator.to_string())?;
+    fs::write(module.path(), generator.to_string())?;
     Ok(())
 }
 

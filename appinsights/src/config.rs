@@ -40,7 +40,7 @@ impl TelemetryConfig {
 
     /// Creates a new telemetry configuration builder with default parameters.
     pub fn builder() -> DefaultTelemetryConfigBuilder {
-        DefaultTelemetryConfigBuilder::default()
+        DefaultTelemetryConfigBuilder
     }
 
     /// Returns an instrumentation key for the client.
