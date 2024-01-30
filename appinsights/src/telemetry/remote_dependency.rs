@@ -146,6 +146,16 @@ impl RemoteDependencyTelemetry {
     pub fn set_id(&mut self, id: impl Into<String>) {
         self.id = Some(id.into());
     }
+
+    /// Set the `data` field of the dependency trace.
+    pub fn set_data(&mut self, data: impl Into<String>) {
+        self.data = Some(data.into());
+    }
+
+    /// Set the `tags` fields of the telemetry, replacing the existing one.
+    pub fn set_tags(&mut self, tags: ContextTags) {
+        self.tags = tags;
+    }
 }
 
 impl Telemetry for RemoteDependencyTelemetry {
