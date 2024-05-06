@@ -115,6 +115,11 @@ impl RequestTelemetry {
         &mut self.measurements
     }
 
+    /// Returns mutable reference to the timestamp.
+    pub fn timestamp_mut(&mut self) -> &mut DateTime<Utc> {
+        &mut self.timestamp
+    }
+
     /// Returns an indication of successful or unsuccessful call.
     pub fn is_success(&self) -> bool {
         if let Ok(response_code) = StatusCode::from_str(&self.response_code) {
