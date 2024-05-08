@@ -7,7 +7,7 @@ use std::{
 };
 
 use appinsights::{blocking::TelemetryClient, telemetry::SeverityLevel};
-use hyper::{Method, Uri};
+use hyper::Uri;
 
 #[test]
 fn it_tracks_all_telemetry_items() {
@@ -21,7 +21,7 @@ fn it_tracks_all_telemetry_items() {
     ai.track_trace("Unable to connect to a gateway", SeverityLevel::Warning);
     ai.track_metric("gateway_latency_ms", 113.0);
     ai.track_request(
-        Method::GET,
+        "GET /dmolokanov/appinsights-rs".to_string(),
         "https://api.github.com/dmolokanov/appinsights-rs"
             .parse::<Uri>()
             .unwrap(),
