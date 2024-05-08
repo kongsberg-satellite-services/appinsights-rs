@@ -1,7 +1,7 @@
 use std::{str::FromStr, time::Duration as StdDuration};
 
 use chrono::{DateTime, SecondsFormat, Utc};
-use http::{Method, StatusCode, Uri};
+use http::{StatusCode, Uri};
 
 use crate::{
     context::TelemetryContext,
@@ -23,9 +23,12 @@ use crate::{
 /// use std::time::Duration;
 ///
 /// // create a telemetry item
+/// let uri = "https://api.github.com/dmolokanov/appinsights-rs".parse::<Uri>().unwrap();
+/// let method = Method::GET;
+/// let name = format!("{method} {}", uri.path());
 /// let mut telemetry = RequestTelemetry::new(
-///     Method::GET,
-///     "https://api.github.com/dmolokanov/appinsights-rs".parse::<Uri>().unwrap(),
+///     name,
+///     uri,
 ///     Duration::from_millis(182),
 ///     "200"
 /// );
@@ -71,7 +74,7 @@ pub struct RequestTelemetry {
 
 impl RequestTelemetry {
     /// Creates a new telemetry item for HTTP request.
-    pub fn new(method: Method, uri: Uri, duration: StdDuration, response_code: impl Into<String>) -> Self {
+    pub fn new(name: String, uri: Uri, duration: StdDuration, response_code: impl Into<String>) -> Self {
         let mut authority = String::new();
         if let Some(host) = &uri.host() {
             authority.push_str(host);
@@ -80,14 +83,16 @@ impl RequestTelemetry {
             authority.push_str(&format!(":{}", port))
         }
 
+        let path_and_query = uri
+            .path_and_query()
+            .map(|pq| pq.to_string())
+            .unwrap_or(uri.path().to_string());
         let uri = Uri::builder()
             .scheme(uri.scheme_str().unwrap_or_default())
             .authority(authority.as_str())
-            .path_and_query(uri.path())
+            .path_and_query(path_and_query)
             .build()
             .unwrap_or(uri);
-
-        let name = format!("{} {}", method, uri);
 
         let mut tags = ContextTags::default();
         tags.operation_mut().set_name(name.clone());
@@ -221,6 +226,7 @@ mod tests {
     use std::str::FromStr;
 
     use chrono::TimeZone;
+    use http::Method;
 
     use super::*;
     use crate::uuid::{self, Uuid};
@@ -232,12 +238,10 @@ mod tests {
 
         let id = "specified-id".to_string();
         let context = TelemetryContext::new("instrumentation".into(), ContextTags::default(), Properties::default());
-        let mut telemetry = RequestTelemetry::new(
-            Method::GET,
-            "https://example.com/main.html".parse().unwrap(),
-            StdDuration::from_secs(2),
-            "200",
-        );
+        let method = Method::GET;
+        let uri: Uri = "https://example.com/main.html".parse().unwrap();
+        let name = format!("{method} {}", uri.path());
+        let mut telemetry = RequestTelemetry::new(name, uri, StdDuration::from_secs(2), "200");
         telemetry.set_id(id);
 
         let envelop = Envelope::from((context, telemetry));
@@ -248,12 +252,12 @@ mod tests {
             i_key: Some("instrumentation".into()),
             tags: Some({
                 let mut tags = BTreeMap::default();
-                tags.insert("ai.operation.name".into(), "GET https://example.com/main.html".into());
+                tags.insert("ai.operation.name".into(), "GET /main.html".into());
                 tags
             }),
             data: Some(Base::Data(Data::RequestData(RequestData {
                 id: "specified-id".into(),
-                name: Some("GET https://example.com/main.html".into()),
+                name: Some("GET /main.html".into()),
                 duration: "0.00:00:02.0000000".into(),
                 response_code: "200".into(),
                 success: true,
@@ -278,12 +282,10 @@ mod tests {
         context.properties_mut().insert("test".into(), "ok".into());
         context.properties_mut().insert("no-write".into(), "fail".into());
 
-        let mut telemetry = RequestTelemetry::new(
-            Method::GET,
-            "https://example.com/main.html".parse().unwrap(),
-            StdDuration::from_secs(2),
-            "200",
-        );
+        let method = Method::GET;
+        let uri: Uri = "https://example.com/main.html".parse().unwrap();
+        let name = format!("{method} {}", uri.path());
+        let mut telemetry = RequestTelemetry::new(name, uri, StdDuration::from_secs(2), "200");
         telemetry.properties_mut().insert("no-write".into(), "ok".into());
         telemetry.measurements_mut().insert("latency".into(), 200.0);
 
@@ -295,12 +297,12 @@ mod tests {
             i_key: Some("instrumentation".into()),
             tags: Some({
                 let mut tags = BTreeMap::default();
-                tags.insert("ai.operation.name".into(), "GET https://example.com/main.html".into());
+                tags.insert("ai.operation.name".into(), "GET /main.html".into());
                 tags
             }),
             data: Some(Base::Data(Data::RequestData(RequestData {
                 id: "910b414a-f368-4b3a-aff6-326632aac566".into(),
-                name: Some("GET https://example.com/main.html".into()),
+                name: Some("GET /main.html".into()),
                 duration: "0.00:00:02.0000000".into(),
                 response_code: "200".into(),
                 success: true,
@@ -334,12 +336,10 @@ mod tests {
         context.tags_mut().insert("test".into(), "ok".into());
         context.tags_mut().insert("no-write".into(), "fail".into());
 
-        let mut telemetry = RequestTelemetry::new(
-            Method::GET,
-            "https://example.com/main.html".parse().unwrap(),
-            StdDuration::from_secs(2),
-            "200",
-        );
+        let method = Method::GET;
+        let uri: Uri = "https://example.com/main.html".parse().unwrap();
+        let name = format!("{method} {}", uri.path());
+        let mut telemetry = RequestTelemetry::new(name, uri, StdDuration::from_secs(2), "200");
         telemetry.tags_mut().insert("no-write".into(), "ok".into());
 
         let envelop = Envelope::from((context, telemetry));
@@ -349,14 +349,14 @@ mod tests {
             i_key: Some("instrumentation".into()),
             tags: Some({
                 let mut tags = BTreeMap::default();
-                tags.insert("ai.operation.name".into(), "GET https://example.com/main.html".into());
+                tags.insert("ai.operation.name".into(), "GET /main.html".into());
                 tags.insert("test".into(), "ok".into());
                 tags.insert("no-write".into(), "ok".into());
                 tags
             }),
             data: Some(Base::Data(Data::RequestData(RequestData {
                 id: "910b414a-f368-4b3a-aff6-326632aac566".into(),
-                name: Some("GET https://example.com/main.html".into()),
+                name: Some("GET /main.html".into()),
                 duration: "0.00:00:02.0000000".into(),
                 response_code: "200".into(),
                 success: true,

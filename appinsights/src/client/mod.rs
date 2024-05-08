@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use http::{Method, Uri};
+use http::Uri;
 
 use crate::{
     channel::{InMemoryChannel, TelemetryChannel},
@@ -146,7 +146,7 @@ impl TelemetryClient {
         self.track(event)
     }
 
-    /// Logs a HTTP request with the specified method, URL, duration and response code.
+    /// Logs a HTTP request with the specified name, URL, duration and response code.
     ///
     /// # Examples
     ///
@@ -159,8 +159,8 @@ impl TelemetryClient {
     /// let uri: Uri = "https://api.github.com/dmolokanov/appinsights-rs".parse().unwrap();
     /// client.track_request(Method::GET, uri, Duration::from_millis(100), "200");
     /// ```
-    pub fn track_request(&self, method: Method, uri: Uri, duration: Duration, response_code: impl Into<String>) {
-        let event = RequestTelemetry::new(method, uri, duration, response_code);
+    pub fn track_request(&self, name: String, uri: Uri, duration: Duration, response_code: impl Into<String>) {
+        let event = RequestTelemetry::new(name, uri, duration, response_code);
         self.track(event)
     }
 

@@ -103,8 +103,8 @@ impl TelemetryClient {
     }
 
     /// Logs a HTTP request with the specified method, URL, duration and response code.
-    pub fn track_request(&self, method: Method, uri: Uri, duration: Duration, response_code: impl Into<String>) {
-        let event = RequestTelemetry::new(method, uri, duration, response_code);
+    pub fn track_request(&self, name: String, uri: Uri, duration: Duration, response_code: impl Into<String>) {
+        let event = RequestTelemetry::new(name, uri, duration, response_code);
         self.track(event)
     }
 

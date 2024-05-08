@@ -7,7 +7,7 @@ use std::{
 };
 
 use appinsights::{telemetry::SeverityLevel, TelemetryClient};
-use hyper::{Method, Uri};
+use hyper::Uri;
 
 async fn panicking(message: &'static str) {
     panic!("{}", message);
@@ -27,7 +27,7 @@ async fn it_tracks_all_telemetry_items() {
         .track_trace("Unable to connect to a gateway", SeverityLevel::Warning);
     ai.lock().unwrap().track_metric("gateway_latency_ms", 113.0);
     ai.lock().unwrap().track_request(
-        Method::GET,
+        "GET /dmolokanov/appinsights-rs".to_string(),
         "https://api.github.com/dmolokanov/appinsights-rs"
             .parse::<Uri>()
             .unwrap(),
