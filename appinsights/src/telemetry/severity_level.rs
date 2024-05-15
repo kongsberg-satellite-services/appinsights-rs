@@ -1,7 +1,7 @@
 use crate::contracts::SeverityLevel as ContractsSeverityLevel;
 
 /// Defines the level of severity for the event.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum SeverityLevel {
     /// Verbose severity level.
     Verbose,
