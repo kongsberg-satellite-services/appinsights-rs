@@ -115,6 +115,11 @@ impl RemoteDependencyTelemetry {
         &mut self.measurements
     }
 
+    /// Returns mutable reference to the timestamp.
+    pub fn timestamp_mut(&mut self) -> &mut DateTime<Utc> {
+        &mut self.timestamp
+    }
+
     /// Sets the dependency id. Use this to link other telemetry to this dependency by setting their operation
     /// parent id to this id.
     ///
