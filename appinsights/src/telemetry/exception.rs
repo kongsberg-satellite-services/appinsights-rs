@@ -107,6 +107,11 @@ impl ExceptionTelemetry {
         self
     }
 
+    /// Returns mutable reference to the timestamp.
+    pub fn timestamp_mut(&mut self) -> &mut DateTime<Utc> {
+        &mut self.timestamp
+    }
+
     /// Create a new [ExceptionTelemetryBuilder], used to construct an [ExceptionTelemetry].
     pub fn builder() -> ExceptionTelemetryBuilder {
         ExceptionTelemetryBuilder::default()
