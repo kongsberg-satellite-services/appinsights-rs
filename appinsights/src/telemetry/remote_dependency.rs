@@ -120,6 +120,16 @@ impl RemoteDependencyTelemetry {
         &mut self.timestamp
     }
 
+    /// Returns the result code of the dependency call.
+    pub fn result_code(&self) -> &Option<String> {
+        &self.result_code
+    }
+
+    /// Returns mutable reference to the result code.
+    pub fn result_code_mut(&mut self) -> &mut Option<String> {
+        &mut self.result_code
+    }
+
     /// Sets the dependency id. Use this to link other telemetry to this dependency by setting their operation
     /// parent id to this id.
     ///
