@@ -13,5 +13,6 @@ pub struct Transmission {
 pub struct TransmissionItem {
     pub index: usize,
     pub status_code: u16,
+    #[expect(dead_code)]
     pub message: String,
 }

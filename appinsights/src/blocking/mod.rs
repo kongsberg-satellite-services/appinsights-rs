@@ -24,7 +24,7 @@
 
 use std::{fmt::Display, time::Duration};
 
-use http::{Method, Uri};
+use http::Uri;
 use log::debug;
 use tokio::sync::mpsc;
 
@@ -51,7 +51,7 @@ impl TelemetryClient {
 
     /// Creates a new telemetry client configured with specified configuration.
     pub fn from_config(config: TelemetryConfig) -> Self {
-        Self::create(config, |config| InMemoryChannel::new(config))
+        Self::create(config, InMemoryChannel::new)
     }
 
     pub(crate) fn create<C, F>(config: TelemetryConfig, channel: F) -> Self
@@ -227,7 +227,7 @@ impl ChannelHandle {
                             ClientCommand::Stop => channel.close().await,
                             ClientCommand::Terminate => channel.terminate().await,
                         }
-                        let _ = req_tx.send(());
+                        let _ = req_tx.send(()).await;
                     }
                 };
                 rt.block_on(f);

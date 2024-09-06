@@ -17,7 +17,7 @@ mod imp {
 
     use uuid::Uuid;
 
-    thread_local!(static ID: RefCell<Option<Uuid>> = RefCell::new(None));
+    thread_local!(static ID: RefCell<Option<Uuid>> = const { RefCell::new(None) });
 
     /// Generates a new instance of unique identifier or predefined value to test against it.
     pub fn new() -> Uuid {
@@ -36,6 +36,7 @@ mod imp {
     }
 
     /// Resets pre-defined Uuid value to use Uuid::new_v4() instead.
+    #[expect(dead_code)]
     pub fn reset() {
         ID.with(|is| *is.borrow_mut() = None)
     }

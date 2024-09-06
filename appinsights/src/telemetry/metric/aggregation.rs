@@ -229,7 +229,7 @@ mod tests {
         let mut telemetry = AggregateMetricTelemetry::new("stats");
         *telemetry.stats_mut() = stats;
 
-        assert!((telemetry.stats().value - 15.0).abs() < std::f64::EPSILON);
+        assert!((telemetry.stats().value - 15.0).abs() < f64::EPSILON);
     }
 
     #[test]
