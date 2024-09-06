@@ -138,14 +138,17 @@ fn can_retry_item(item: &TransmissionItem) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use std::net::SocketAddr;
+
     use chrono::TimeZone;
     use http::{Request, StatusCode};
-    use hyper::{
-        service::{make_service_fn, service_fn},
-        Body, Server,
-    };
+    use http_body_util::Full;
+    use hyper::body::{Bytes, Incoming};
+    use hyper::service::service_fn;
+    use hyper_util::rt::TokioIo;
     use serde_json::{json, Value};
     use test_case::test_case;
+    use tokio::net::TcpListener;
 
     use super::*;
 
@@ -184,34 +187,52 @@ mod tests {
     }
 
     fn create_server(status_code: StatusCode, retry_after: Option<&'static str>, body: Option<Value>) -> String {
-        let make_service = make_service_fn(move |_| {
-            let retry_after = retry_after.map(ToString::to_string);
-            let body = body.clone();
-            async move {
-                Ok::<_, hyper::Error>(service_fn(move |_: Request<Body>| {
-                    let retry_after = retry_after.clone();
-                    let body = body.clone();
-                    async move {
-                        let mut builder = hyper::Response::builder().status(status_code);
+        // Serve a dummy port
+        let addr = SocketAddr::from(([0, 0, 0, 0], 0));
+        let std_listener = std::net::TcpListener::bind(addr).expect("bind to localhost");
+        std_listener
+            .set_nonblocking(true)
+            .expect("convert std::net::TcpListener to non-blocking");
+        let listener = TcpListener::from_std(std_listener).expect("from std::net::TcpListener");
+        let addr = listener.local_addr().expect("localhost local_addr");
 
-                        if let Some(retry_after) = retry_after {
-                            builder = builder.header("Retry-After", retry_after);
-                        }
+        let retry_after = retry_after.map(ToString::to_string);
+        let body = body.clone();
 
-                        let body = body.map(move |body| Body::from(body.to_string())).unwrap_or_default();
+        let task = async move {
+            let (conn, _) = listener.accept().await.expect("valid connection");
+            let io = TokioIo::new(conn);
 
-                        builder.body(body)
+            let service = service_fn(|_req: Request<Incoming>| {
+                let retry_after = retry_after.clone();
+                let body = body.clone();
+                async move {
+                    let retry_after = retry_after;
+                    let body = body;
+
+                    let mut builder = hyper::Response::builder().status(status_code);
+
+                    if let Some(retry_after) = retry_after {
+                        builder = builder.header("Retry-After", retry_after);
                     }
-                }))
-            }
-        });
 
-        let server = Server::bind(&([0, 0, 0, 0], 0).into()).serve(make_service);
-        let url = format!("http://{}", server.local_addr());
+                    let body = body
+                        .map(move |body| Full::new(Bytes::copy_from_slice(body.to_string().as_bytes())))
+                        .unwrap_or_default();
 
-        tokio::spawn(server);
+                    builder.body(body)
+                }
+            });
 
-        url
+            hyper::server::conn::http1::Builder::new()
+                .serve_connection(io, service)
+                .await
+                .expect("serve connection");
+        };
+
+        tokio::spawn(task);
+
+        format!("http://{addr}")
     }
 
     fn partial_no_retries() -> Value {
