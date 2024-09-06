@@ -1,4 +1,7 @@
 use std::{
+    future::Future,
+    net::SocketAddr,
+    pin::Pin,
     sync::{
         atomic::{AtomicUsize, Ordering},
         Arc,
@@ -7,15 +10,18 @@ use std::{
 };
 
 use chrono::{DateTime, Utc};
+use http_body_util::Full;
 use hyper::{
-    body::Buf,
-    service::{make_service_fn, service_fn},
-    Body, Request, Response, Server, StatusCode,
+    body::{Bytes, Incoming},
+    service::Service,
+    Request, Response, StatusCode,
 };
+use hyper_util::rt::TokioIo;
 use lazy_static::lazy_static;
 use matches::assert_matches;
 use parking_lot::Mutex;
 use serde_json::json;
+use tokio::net::TcpListener;
 use tokio::sync::{
     mpsc::{self, Receiver},
     oneshot,
@@ -436,6 +442,47 @@ struct Builder {
     responses: Vec<Response<String>>,
 }
 
+#[derive(Debug, Clone)]
+struct TestServerService {
+    counter: Arc<AtomicUsize>,
+    requests_channel: tokio::sync::mpsc::Sender<String>,
+    responses: Arc<Vec<Response<String>>>,
+}
+
+impl Service<Request<Incoming>> for TestServerService {
+    type Response = Response<Full<Bytes>>;
+    type Error = hyper::Error;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+
+    fn call(&self, request: Request<Incoming>) -> Self::Future {
+        let sender = self.requests_channel.clone();
+        let count = self.counter.fetch_add(1, Ordering::AcqRel);
+        let response = self.responses.get(count).cloned();
+
+        Box::pin(async move {
+            // Read the request body
+            // Then send into into the shared channel
+            use http_body_util::BodyExt;
+            let body = request.into_body().collect().await.expect("reading body");
+            let slice = body.to_bytes().to_vec();
+            let body = String::from_utf8_lossy(slice.as_slice()).to_string();
+            sender.send(body).await.expect("send body into requests channel");
+
+            let response = match response {
+                Some(response) => {
+                    let bytes = response.body().as_bytes();
+                    Response::builder()
+                        .status(response.status())
+                        .body(Full::new(Bytes::copy_from_slice(bytes)))
+                        .unwrap()
+                }
+                None => Response::builder().body(Full::new(Bytes::new())).unwrap(),
+            };
+            Ok(response)
+        })
+    }
+}
+
 impl Builder {
     fn response(mut self, status: StatusCode, body: impl ToString, retry_after: Option<DateTime<Utc>>) -> Self {
         let mut builder = Response::builder().status(status);
@@ -471,58 +518,49 @@ impl Builder {
         let responses = Arc::new(self.responses);
         let counter = Arc::new(AtomicUsize::new(0));
 
-        let make_service = make_service_fn(move |_| {
-            let request_send = request_sender.clone();
-            let counter = counter.clone();
-            let responses = responses.clone();
+        let shutdown = graceful_shutdown::Shutdown::new();
+        tokio::spawn(shutdown.shutdown_after(shutdown_recv));
 
-            async move {
-                Ok::<_, hyper::Error>(service_fn(move |req: Request<Body>| {
-                    let request_send = request_send.clone();
-                    let counter = counter.clone();
-                    let responses = responses.clone();
+        let addr = {
+            let addr = SocketAddr::from(([0, 0, 0, 0], 0));
+            let std_listener = std::net::TcpListener::bind(addr).expect("bind to localhost");
+            std_listener
+                .set_nonblocking(true)
+                .expect("convert std::net::TcpListener to non-blocking");
+            let listener = TcpListener::from_std(std_listener).expect("from std::net::TcpListener");
+            let addr = listener.local_addr().expect("localhost local_addr");
 
-                    async move {
-                        let body = hyper::body::aggregate(req).await?;
-                        use std::io::Read;
+            tokio::spawn(async move {
+                // Initialize the service that will be cloned between each served connection,
+                // effectively allowing us shared state access in our handler.
+                let service = TestServerService {
+                    counter: counter.clone(),
+                    requests_channel: request_sender.clone(),
+                    responses: responses.clone(),
+                };
 
-                        let mut content = String::default();
-                        body.reader().read_to_string(&mut content).unwrap();
-                        request_send.send(content).await.expect("send request");
+                loop {
+                    let stream = match shutdown.cancel_on_shutdown(listener.accept()).await {
+                        Some(Ok((conn, _))) => conn,
+                        Some(Err(_)) => break,
+                        None => break,
+                    };
+                    let io = TokioIo::new(stream);
+                    let service = service.clone();
 
-                        let count = counter.fetch_add(1, Ordering::AcqRel);
+                    tokio::spawn(async move {
+                        hyper::server::conn::http1::Builder::new()
+                            .serve_connection(io, service)
+                            .await
+                            .expect("serve local connection");
+                    });
+                }
+            });
 
-                        let response = if let Some(response) = responses.get(count) {
-                            Response::builder()
-                                .status(response.status())
-                                .body(Body::from(response.body().clone()))
-                                .unwrap()
-                        } else {
-                            Response::builder()
-                                .status(StatusCode::NOT_FOUND)
-                                .body(Body::empty())
-                                .unwrap()
-                        };
+            addr
+        };
 
-                        Ok::<_, hyper::Error>(response)
-                    }
-                }))
-            }
-        });
-
-        let server = Server::bind(&([0, 0, 0, 0], 0).into()).serve(make_service);
-
-        let url = format!("http://{}", server.local_addr());
-
-        let graceful = server.with_graceful_shutdown(async {
-            shutdown_recv.await.ok();
-        });
-
-        tokio::spawn(async move {
-            if let Err(e) = graceful.await {
-                log::error!("server error: {}", e);
-            }
-        });
+        let url = format!("http://{}", addr);
 
         HyperTestServer {
             url,
