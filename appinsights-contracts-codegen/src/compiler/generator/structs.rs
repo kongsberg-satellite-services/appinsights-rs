@@ -238,13 +238,13 @@ impl TelemetryDataTraitGenerator {
         implementation
             .impl_trait("TelemetryData")
             .new_fn("base_type")
-            .doc(&format!(
+            .doc(format!(
                 "Returns the base type when placed within an [{name}](trait.{name}.html) container.",
                 name = "Data"
             ))
             .arg_ref_self()
             .ret("String")
-            .line(&format!(r#"String::from("{}")"#, name));
+            .line(format!(r#"String::from("{}")"#, name));
 
         Self {
             implementation,

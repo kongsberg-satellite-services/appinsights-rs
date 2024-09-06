@@ -6,14 +6,17 @@ use std::{
 use chrono::Utc;
 use log::{Level, LevelFilter, Log, Metadata, Record, SetLoggerError};
 
+#[allow(dead_code)]
 pub async fn wait_until(entries: &Arc<RwLock<Vec<String>>>, msg: &str, panic_after: Duration) {
     let panic_after = Utc::now() + chrono::Duration::from_std(panic_after).unwrap();
     loop {
-        let entries = entries.read().unwrap();
-        if entries.iter().any(|entry| entry.contains(msg)) {
-            break;
+        {
+            let entries = entries.read().unwrap();
+            if entries.iter().any(|entry| entry.contains(msg)) {
+                break;
+            }
+            drop(entries);
         }
-        drop(entries);
 
         if Utc::now() > panic_after {
             panic!("Test took too long to finish");
@@ -22,6 +25,7 @@ pub async fn wait_until(entries: &Arc<RwLock<Vec<String>>>, msg: &str, panic_aft
     }
 }
 
+#[allow(dead_code)]
 pub fn wait_until_blocking(entries: &Arc<RwLock<Vec<String>>>, msg: &str, panic_after: Duration) {
     let panic_after = Utc::now() + chrono::Duration::from_std(panic_after).unwrap();
     loop {
@@ -38,6 +42,7 @@ pub fn wait_until_blocking(entries: &Arc<RwLock<Vec<String>>>, msg: &str, panic_
     }
 }
 
+#[allow(dead_code)]
 pub fn init(entries: Arc<RwLock<Vec<String>>>) {
     builder(entries).init()
 }
@@ -61,6 +66,7 @@ impl Builder {
         }
     }
 
+    #[allow(dead_code)]
     pub fn level(&mut self, level: Level) -> &mut Self {
         self.level = level;
         self

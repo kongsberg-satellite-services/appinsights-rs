@@ -452,9 +452,6 @@ pub(crate) mod tests {
         }
     }
 
-    #[derive(Clone)]
-    pub(crate) struct TestData;
-
     impl From<(TelemetryContext, TestTelemetry)> for Envelope {
         fn from((_, _): (TelemetryContext, TestTelemetry)) -> Self {
             Envelope::default()

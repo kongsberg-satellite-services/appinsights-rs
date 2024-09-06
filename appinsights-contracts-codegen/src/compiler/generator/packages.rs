@@ -19,13 +19,14 @@ impl PackageGenerator {
     }
 }
 
+#[allow(clippy::to_string_trait_impl)]
 impl ToString for PackageGenerator {
     fn to_string(&self) -> String {
         codegen::Scope::new()
             .raw("// NOTE: This file was automatically generated.")
             .raw("#![allow(unused_variables, dead_code, unused_imports)]")
-            .raw(&self.modules.join("\n"))
-            .raw(&self.usages.join("\n"))
+            .raw(self.modules.join("\n"))
+            .raw(self.usages.join("\n"))
             .push_trait(telemetry_data_trait())
             .to_string()
     }
@@ -37,7 +38,7 @@ fn telemetry_data_trait() -> codegen::Trait {
         .vis("pub")
         .doc("Common interface implemented by telemetry data contacts.")
         .new_fn("envelope_name")
-        .doc(&format!(
+        .doc(format!(
             "Returns the name used when this is embedded within an [{name}](trait.{name}.html) container.",
             name = "Envelope"
         ))
@@ -60,7 +61,7 @@ fn telemetry_data_trait() -> codegen::Trait {
 
     telemetry_data
         .new_fn("base_type")
-        .doc(&format!(
+        .doc(format!(
             "Returns the base type when placed within an [{name}](trait.{name}.html) container.",
             name = "Data"
         ))

@@ -65,8 +65,8 @@ impl Stats {
                 mean = self.value / self.count as f64;
             }
 
-            self.min = values.iter().fold(std::f64::NAN, |x, min| min.min(x));
-            self.max = values.iter().fold(std::f64::NAN, |x, max| max.max(x));
+            self.min = values.iter().fold(f64::NAN, |x, min| min.min(x));
+            self.max = values.iter().fold(f64::NAN, |x, max| max.max(x));
 
             // Welford's algorithm to compute variance. The divide occurs in the caller.
             let mut value = self.value;

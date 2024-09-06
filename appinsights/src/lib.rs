@@ -29,8 +29,8 @@
 //! ## Examples
 //!
 //! 1. Create an new instance of [`TelemetryClient`](struct.TelemetryClient.html) with an
-//! Instrumentation Key and default settings. To get more control over client behavior please visit
-//! [`TelemetryConfig`](struct.TelemetryConfig.html).
+//!    Instrumentation Key and default settings. To get more control over client behavior please visit
+//!    [`TelemetryConfig`](struct.TelemetryConfig.html).
 //! 2. Send an event telemetry to the Application Insights service.
 //!
 //! ```rust
@@ -160,13 +160,13 @@
 //! worker stores it in memory, so when application crashes the data will be lost. Luckily SDK
 //! provides several convenient methods to deal with this issue.
 //! * [`flush_channel`](struct.TelemetryClient.html#method.flush_channel) will trigger telemetry submission
-//! as soon as possible. It returns immediately and telemetry is no guaranteed to be sent.
+//!   as soon as possible. It returns immediately and telemetry is no guaranteed to be sent.
 //! * [`close_channel`](struct.TelemetryClient.html#method.close_channel) will cause the channel to
-//! stop accepting any new telemetry items, submit all pending ones, block current task and
-//! wait until data will be sent at most once. If telemetry submission fails, it will not retry.
-//! This method consumes the value of client so it makes impossible to use a client with close channel.
+//!   stop accepting any new telemetry items, submit all pending ones, block current task and
+//!   wait until data will be sent at most once. If telemetry submission fails, it will not retry.
+//!   This method consumes the value of client so it makes impossible to use a client with close channel.
 //! * [`terminate`](struct.TelemetryClient.html#method.terminate) will trigger termination of submission flow, all pending items discarded and
-//! current task will be blocked until all resources freed.
+//!   current task will be blocked until all resources freed.
 #![deny(unused_extern_crates)]
 #![deny(missing_docs)]
 

@@ -22,7 +22,7 @@ mod imp {
 
     use chrono::{DateTime, Utc};
 
-    thread_local!(static NOW: RefCell<Option<DateTime<Utc>>> = RefCell::new(None));
+    thread_local!(static NOW: RefCell<Option<DateTime<Utc>>> = const { RefCell::new(None) });
 
     /// Returns a DateTime which corresponds to a current date or the value user set in advance.
     pub fn now() -> DateTime<Utc> {
@@ -35,6 +35,7 @@ mod imp {
     }
 
     /// Resets pre-defined DateTime value to use Utc::now() instead.
+    #[expect(dead_code)]
     pub fn reset() {
         NOW.with(|ts| *ts.borrow_mut() = None)
     }
