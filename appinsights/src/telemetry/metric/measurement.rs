@@ -1,4 +1,4 @@
-use chrono::{DateTime, SecondsFormat, Utc};
+use chrono::{DateTime, Utc};
 
 use crate::{
     context::TelemetryContext,
@@ -87,7 +87,7 @@ impl From<(TelemetryContext, MetricTelemetry)> for Envelope {
     fn from((context, telemetry): (TelemetryContext, MetricTelemetry)) -> Self {
         Self {
             name: "Microsoft.ApplicationInsights.Metric".into(),
-            time: telemetry.timestamp.to_rfc3339_opts(SecondsFormat::Millis, true),
+            time: telemetry.timestamp.to_rfc3339_opts(context.timestamp_format, true),
             i_key: Some(context.i_key),
             tags: Some(ContextTags::combine(context.tags, telemetry.tags).into()),
             data: Some(Base::Data(Data::MetricData(MetricData {
@@ -110,7 +110,7 @@ impl From<(TelemetryContext, MetricTelemetry)> for Envelope {
 mod tests {
     use std::collections::BTreeMap;
 
-    use chrono::TimeZone;
+    use chrono::{SecondsFormat, TimeZone};
 
     use super::*;
     use crate::time;
@@ -119,8 +119,12 @@ mod tests {
     fn it_overrides_properties_from_context() {
         time::set(Utc.ymd(2019, 1, 2).and_hms_milli(3, 4, 5, 100));
 
-        let mut context =
-            TelemetryContext::new("instrumentation".into(), ContextTags::default(), Properties::default());
+        let mut context = TelemetryContext::new(
+            "instrumentation".into(),
+            SecondsFormat::Millis,
+            ContextTags::default(),
+            Properties::default(),
+        );
         context.properties_mut().insert("test".into(), "ok".into());
         context.properties_mut().insert("no-write".into(), "fail".into());
 
@@ -160,8 +164,12 @@ mod tests {
     fn it_overrides_tags_from_context() {
         time::set(Utc.ymd(2019, 1, 2).and_hms_milli(3, 4, 5, 101));
 
-        let mut context =
-            TelemetryContext::new("instrumentation".into(), ContextTags::default(), Properties::default());
+        let mut context = TelemetryContext::new(
+            "instrumentation".into(),
+            SecondsFormat::Millis,
+            ContextTags::default(),
+            Properties::default(),
+        );
         context.tags_mut().insert("test".into(), "ok".into());
         context.tags_mut().insert("no-write".into(), "fail".into());
 

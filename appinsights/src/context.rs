@@ -1,3 +1,5 @@
+use chrono::SecondsFormat;
+
 use crate::{
     telemetry::{ContextTags, Properties},
     TelemetryConfig,
@@ -25,6 +27,9 @@ pub struct TelemetryContext {
     /// An instrumentation key.
     pub(crate) i_key: String,
 
+    /// The format of event timestamps.
+    pub(crate) timestamp_format: SecondsFormat,
+
     // A collection of tags to attach to telemetry event.
     pub(crate) tags: ContextTags,
 
@@ -36,6 +41,8 @@ impl TelemetryContext {
     /// Creates a new instance of telemetry context from config
     pub fn from_config(config: &TelemetryConfig) -> Self {
         let i_key = config.i_key().into();
+
+        let timestamp_format = config.timestamp_format();
 
         let sdk_version = format!("rust:{}", env!("CARGO_PKG_VERSION"));
         let os_version = if cfg!(target_os = "linux") {
@@ -58,13 +65,14 @@ impl TelemetryContext {
         }
 
         let properties = Properties::default();
-        Self::new(i_key, tags, properties)
+        Self::new(i_key, timestamp_format, tags, properties)
     }
 
     /// Creates a new instance of telemetry context.
-    pub fn new(i_key: String, tags: ContextTags, properties: Properties) -> Self {
+    pub fn new(i_key: String, timestamp_format: SecondsFormat, tags: ContextTags, properties: Properties) -> Self {
         Self {
             i_key,
+            timestamp_format,
             tags,
             properties,
         }
@@ -88,6 +96,16 @@ impl TelemetryContext {
     /// Returns immutable reference to a collection of common tags to attach to telemetry event.
     pub fn tags(&self) -> &ContextTags {
         &self.tags
+    }
+
+    /// Returns a mutable reference to the format of event timestamps.
+    pub fn timestamp_format_mut(&mut self) -> &mut SecondsFormat {
+        &mut self.timestamp_format
+    }
+
+    /// Returns an the format of event timestamps.
+    pub fn timestamp_format(&self) -> SecondsFormat {
+        self.timestamp_format
     }
 }
 
@@ -114,6 +132,7 @@ mod tests {
         let context = TelemetryContext::from_config(&config);
 
         assert_eq!(&context.i_key, "instrumentation");
+        assert_eq!(context.timestamp_format, SecondsFormat::Millis);
         assert_matches!(&context.tags().internal().sdk_version(), Some(_));
         assert_matches!(&context.tags().device().os_version(), Some(_));
         assert_matches!(&context.tags().device().id(), Some(_));

@@ -51,6 +51,7 @@
 //! [`TelemetryClient`](struct.TelemetryClient.html) with it.
 //!
 //! ```rust
+//! use chrono::SecondsFormat;
 //! use std::time::Duration;
 //! use appinsights::{TelemetryClient, TelemetryConfig};
 //! use appinsights::telemetry::SeverityLevel;
@@ -61,10 +62,12 @@
 //!     .i_key("<instrumentation key>")
 //!     // set a new maximum time to wait until data will be sent to the server
 //!     .interval(Duration::from_secs(5))
+//!     // set the format of event timestamps
+//!     .timestamp_format(SecondsFormat::Micros)
 //!     // construct a new instance of telemetry configuration
 //!     .build();
 //!
-//! // configure telemetry client with default settings
+//! // configure telemetry client with the custom settings
 //! let client = TelemetryClient::from_config(config);
 //!
 //! // send trace telemetry to the Application Insights server

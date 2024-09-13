@@ -1,6 +1,8 @@
 //! Module for telemetry client configuration.
 use std::time::Duration;
 
+use chrono::SecondsFormat;
+
 /// Configuration data used to initialize a new [`TelemetryClient`](../struct.TelemetryClient.html) with.
 ///
 /// # Examples
@@ -30,6 +32,9 @@ pub struct TelemetryConfig {
 
     /// Maximum time to wait until send a batch of telemetry.
     interval: Duration,
+
+    /// Timestamp format for telemetry data.
+    timestamp_format: SecondsFormat,
 }
 
 impl TelemetryConfig {
@@ -57,6 +62,11 @@ impl TelemetryConfig {
     pub fn interval(&self) -> Duration {
         self.interval
     }
+
+    /// Returns timestamp format for telemetry data.
+    pub fn timestamp_format(&self) -> SecondsFormat {
+        self.timestamp_format
+    }
 }
 
 /// Constructs a new instance of a [`TelemetryConfig`](struct.TelemetryConfig.html) with required
@@ -74,6 +84,7 @@ impl DefaultTelemetryConfigBuilder {
             i_key: i_key.into(),
             endpoint: "https://dc.services.visualstudio.com/v2/track".into(),
             interval: Duration::from_secs(2),
+            timestamp_format: SecondsFormat::Millis,
         }
     }
 }
@@ -83,6 +94,7 @@ pub struct TelemetryConfigBuilder {
     i_key: String,
     endpoint: String,
     interval: Duration,
+    timestamp_format: SecondsFormat,
 }
 
 impl TelemetryConfigBuilder {
@@ -110,12 +122,19 @@ impl TelemetryConfigBuilder {
         self
     }
 
+    /// Initializes a builder with a format for the event timestamp in telemetry data.
+    pub fn timestamp_format(mut self, format: SecondsFormat) -> Self {
+        self.timestamp_format = format;
+        self
+    }
+
     /// Constructs a new instance of a [`TelemetryConfig`](struct.TelemetryConfig.html) with custom settings.
     pub fn build(self) -> TelemetryConfig {
         TelemetryConfig {
             i_key: self.i_key,
             endpoint: self.endpoint,
             interval: self.interval,
+            timestamp_format: self.timestamp_format,
         }
     }
 }
@@ -132,7 +151,8 @@ mod tests {
             TelemetryConfig {
                 i_key: "instrumentation key".into(),
                 endpoint: "https://dc.services.visualstudio.com/v2/track".into(),
-                interval: Duration::from_secs(2)
+                interval: Duration::from_secs(2),
+                timestamp_format: SecondsFormat::Millis,
             },
             config
         )
@@ -144,13 +164,15 @@ mod tests {
             .i_key("instrumentation key")
             .endpoint("https://google.com")
             .interval(Duration::from_micros(100))
+            .timestamp_format(SecondsFormat::Secs)
             .build();
 
         assert_eq!(
             TelemetryConfig {
                 i_key: "instrumentation key".into(),
                 endpoint: "https://google.com".into(),
-                interval: Duration::from_micros(100)
+                interval: Duration::from_micros(100),
+                timestamp_format: SecondsFormat::Secs,
             },
             config
         );
