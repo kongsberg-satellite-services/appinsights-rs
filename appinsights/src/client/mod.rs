@@ -93,9 +93,11 @@ impl TelemetryClient {
     /// let mut client = TelemetryClient::new("<instrumentation key>".to_string());
     /// client.context_mut().tags_mut().insert("app_version".into(), "v0.1.1".to_string());
     /// client.context_mut().properties_mut().insert("Resource Group".into(), "my-rg".to_string());
+    /// *client.context_mut().timestamp_format() = SecondsFormat::Seconds;
     ///
     /// assert_eq!(client.context().tags().get("app_version"), Some(&"v0.1.1".to_string()));
     /// assert_eq!(client.context().properties().get("Resource Group"), Some(&"my-rg".to_string()));
+    /// assert_eq!(client.context().timestamp_format(), SecondsFormat::Seconds);
     /// ```
     pub fn context_mut(&mut self) -> &mut TelemetryContext {
         &mut self.context
@@ -140,7 +142,7 @@ impl TelemetryClient {
     /// # use appinsights::telemetry::SeverityLevel;
     /// # let client = TelemetryClient::new("<instrumentation key>".to_string());
     /// client.track_metric("gateway_latency_ms", 113.0);
-    /// ```    
+    /// ```
     pub fn track_metric(&self, name: impl Into<String>, value: f64) {
         let event = MetricTelemetry::new(name, value);
         self.track(event)
