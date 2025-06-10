@@ -25,7 +25,10 @@ pub struct Transmitter {
 impl Transmitter {
     /// Creates a new instance of telemetry items sender.
     pub fn new(url: &str) -> Self {
-        let client = Client::new();
+        let client = Client::builder()
+            .timeout(std::time::Duration::from_secs(30))
+            .build()
+            .unwrap();
         Self {
             url: url.into(),
             client,
