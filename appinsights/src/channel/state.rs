@@ -3,7 +3,7 @@ use std::{mem, sync::Arc, time::Duration};
 use crossbeam_queue::SegQueue;
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::{Future, Stream, StreamExt};
-use log::{debug, error, trace};
+use log::{debug, error, info, trace};
 use sm::{sm, Event};
 
 use crate::{
@@ -85,6 +85,7 @@ impl Worker {
         let mut items: Vec<Envelope> = Default::default();
         let mut retry = Retry::default();
 
+        info!("serving worker in infinite state-machine loop");
         loop {
             state = match state {
                 InitialReceiving(m) => self.handle_receiving(m, &mut items).await,
